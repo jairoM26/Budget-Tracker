@@ -18,7 +18,7 @@ export function errorHandler(
     });
   }
 
-  console.error(err.stack);
+  console.error(err.stack); // eslint-disable-line no-console
   res.status(500).json({
     success: false,
     error: {
