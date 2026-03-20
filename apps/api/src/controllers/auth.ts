@@ -42,6 +42,16 @@ export async function login(req: Request, res: Response, next: NextFunction) {
   }
 }
 
+export async function refresh(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { accessToken, refreshToken } = await authService.refresh(req.cookies?.refreshToken);
+    setRefreshCookie(res, refreshToken);
+    res.json({ success: true, data: { accessToken } });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function logout(req: Request, res: Response, next: NextFunction) {
   try {
     await authService.logout(req.cookies?.refreshToken);

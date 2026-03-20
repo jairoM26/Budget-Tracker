@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import prisma from "../prisma";
-import { generateAccessToken, generateRefreshToken } from "../utils/jwt";
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../utils/jwt";
 import { ConflictError, UnauthorizedError } from "../utils/errors";
 import { RegisterInput, LoginInput } from "../validators/auth";
 
@@ -95,6 +95,43 @@ export async function login(input: LoginInput) {
   });
 
   return { user, accessToken, refreshToken };
+}
+
+export async function refresh(refreshToken: string | undefined) {
+  if (!refreshToken) {
+    throw new UnauthorizedError("Missing refresh token");
+  }
+
+  let payload: { sub: string };
+  try {
+    payload = verifyRefreshToken(refreshToken);
+  } catch {
+    throw new UnauthorizedError("Invalid or expired refresh token");
+  }
+
+  const stored = await prisma.refreshToken.findUnique({
+    where: { tokenHash: hashToken(refreshToken) },
+  });
+
+  if (!stored || stored.expiresAt < new Date()) {
+    throw new UnauthorizedError("Invalid or expired refresh token");
+  }
+
+  // Rotate: delete old token, issue new one
+  await prisma.refreshToken.delete({ where: { id: stored.id } });
+
+  const newRefreshToken = generateRefreshToken(payload.sub);
+  await prisma.refreshToken.create({
+    data: {
+      userId: payload.sub,
+      tokenHash: hashToken(newRefreshToken),
+      expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+    },
+  });
+
+  const accessToken = generateAccessToken(payload.sub);
+
+  return { accessToken, refreshToken: newRefreshToken };
 }
 
 export async function logout(refreshToken: string | undefined) {
