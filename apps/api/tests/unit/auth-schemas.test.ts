@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { registerSchema } from "../../src/validators/auth";
+import { registerSchema, loginSchema } from "../../src/validators/auth";
 
 describe("registerSchema", () => {
   it("accepts valid input", () => {
@@ -78,6 +78,43 @@ describe("registerSchema", () => {
       password: "password123",
       name: "a".repeat(101),
     });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("loginSchema", () => {
+  it("accepts valid email and password", () => {
+    const result = loginSchema.safeParse({
+      email: "user@example.com",
+      password: "anypassword",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects invalid email format", () => {
+    const result = loginSchema.safeParse({
+      email: "not-an-email",
+      password: "anypassword",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].message).toBe("Must be a valid email address");
+    }
+  });
+
+  it("rejects empty password", () => {
+    const result = loginSchema.safeParse({
+      email: "user@example.com",
+      password: "",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].message).toBe("Password is required");
+    }
+  });
+
+  it("rejects missing fields", () => {
+    const result = loginSchema.safeParse({});
     expect(result.success).toBe(false);
   });
 });
