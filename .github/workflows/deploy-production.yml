@@ -1,0 +1,31 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "deploy" to confirm production deployment'
+        required: true
+
+jobs:
+  validate:
+    name: Validate confirmation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit confirmation
+        if: github.event.inputs.confirm != 'deploy'
+        run: |
+          echo "Confirmation failed. You must type 'deploy' to proceed."
+          exit 1
+
+  deploy-api:
+    name: Deploy API to Render (production)
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render production deploy
+        run: |
+          curl -f -X POST "${{ secrets.RENDER_PRODUCTION_DEPLOY_HOOK }}"
+
+  # The frontend production deploy is triggered automatically by Vercel
+  # when the Vercel project is configured with main as the production branch.

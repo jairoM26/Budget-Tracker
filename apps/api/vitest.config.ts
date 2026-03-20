@@ -5,10 +5,11 @@ export default defineConfig({
     environment: "node",
     globals: true,
     passWithNoTests: true,
+    include: ["tests/**/*.test.ts"],
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],
-      include: ["src/utils/**", "src/middleware/**"],
+      include: ["src/utils/**", "src/middleware/**", "src/validators/**"],
       thresholds: {
         lines: 90,
       },
