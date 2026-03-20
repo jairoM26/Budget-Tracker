@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { errorHandler } from "./middleware/errorHandler";
+import authRouter from "./routes/auth";
 
 const requiredEnvVars = [
   "DATABASE_URL",
@@ -12,7 +13,7 @@ const requiredEnvVars = [
 
 for (const envVar of requiredEnvVars) {
   if (!process.env[envVar]) {
-    console.error(`Missing required environment variable: ${envVar}`);
+    console.error(`Missing required environment variable: ${envVar}`); // eslint-disable-line no-console
     process.exit(1);
   }
 }
@@ -27,6 +28,8 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
+app.use("/auth", authRouter);
+
 app.use((_req, res) => {
   res.status(404).json({
     success: false,
@@ -40,7 +43,7 @@ app.use((_req, res) => {
 app.use(errorHandler);
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`); // eslint-disable-line no-console
 });
 
 export default app;
