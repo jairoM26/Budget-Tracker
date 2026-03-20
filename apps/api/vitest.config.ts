@@ -5,6 +5,7 @@ export default defineConfig({
     environment: "node",
     globals: true,
     passWithNoTests: true,
+    fileParallelism: false,
     include: ["tests/**/*.test.ts"],
     setupFiles: ["tests/setup.ts"],
     coverage: {
