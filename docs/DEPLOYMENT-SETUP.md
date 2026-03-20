@@ -31,9 +31,9 @@ For each environment (staging, production):
 2. Settings:
    - **Name:** `budget-tracker-api-staging` / `budget-tracker-api-production`
    - **Branch:** `main`
-   - **Root directory:** `apps/api`
-   - **Build command:** `npm install && npx prisma generate && npm run build`
-   - **Start command:** `node dist/index.js`
+   - **Root directory:** *(leave empty — repo root)*
+   - **Build command:** `npm install && npm run build --workspace=packages/shared && npm run build --workspace=apps/api`
+   - **Start command:** `node apps/api/dist/index.js`
    - **Instance type:** Free (staging) / Starter (production)
 3. Environment variables — add all of these:
    | Variable | Value |
