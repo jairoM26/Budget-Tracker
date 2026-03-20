@@ -51,6 +51,10 @@ jobs:
         env:
           DATABASE_URL: postgresql://budget:budget_local@localhost:5432/budget_test
 
+      - name: Generate Prisma client
+        run: npx prisma generate
+        working-directory: apps/api
+
       - name: Run tests
         run: npm run test --workspace=apps/api
         env:
