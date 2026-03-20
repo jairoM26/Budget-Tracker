@@ -55,7 +55,7 @@ jobs:
         run: npx prisma generate
         working-directory: apps/api
 
-      - name: Run tests
+      - name: Run API tests
         run: npm run test --workspace=apps/api
         env:
           DATABASE_URL: postgresql://budget:budget_local@localhost:5432/budget_test
@@ -64,3 +64,6 @@ jobs:
           JWT_EXPIRES_IN: 15m
           REFRESH_TOKEN_SECRET: ci-refresh-secret-do-not-use-in-production
           NODE_ENV: test
+
+      - name: Run web tests
+        run: npm run test --workspace=apps/web
