@@ -1,10 +1,12 @@
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import prisma from "../prisma";
 import { generateAccessToken, generateRefreshToken } from "../utils/jwt";
-import { ConflictError } from "../utils/errors";
-import { RegisterInput } from "../validators/auth";
+import { ConflictError, UnauthorizedError } from "../utils/errors";
+import { RegisterInput, LoginInput } from "../validators/auth";
 
 const BCRYPT_ROUNDS = 12;
+const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 const DEFAULT_CATEGORIES = [
   { name: "Salary", color: "#22c55e", icon: "briefcase", type: "INCOME" as const },
@@ -16,6 +18,10 @@ const DEFAULT_CATEGORIES = [
   { name: "Healthcare", color: "#ef4444", icon: "heart", type: "EXPENSE" as const },
   { name: "Other", color: "#6b7280", icon: "tag", type: null },
 ];
+
+function hashToken(token: string): string {
+  return crypto.createHash("sha256").update(token).digest("hex");
+}
 
 export async function register(input: RegisterInput) {
   const existing = await prisma.user.findUnique({
@@ -49,5 +55,52 @@ export async function register(input: RegisterInput) {
   const accessToken = generateAccessToken(user.id);
   const refreshToken = generateRefreshToken(user.id);
 
+  await prisma.refreshToken.create({
+    data: {
+      userId: user.id,
+      tokenHash: hashToken(refreshToken),
+      expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+    },
+  });
+
   return { user, accessToken, refreshToken };
+}
+
+export async function login(input: LoginInput) {
+  const found = await prisma.user.findUnique({
+    where: { email: input.email },
+  });
+
+  if (!found) {
+    throw new UnauthorizedError("Invalid credentials");
+  }
+
+  const passwordMatch = await bcrypt.compare(input.password, found.passwordHash);
+  if (!passwordMatch) {
+    throw new UnauthorizedError("Invalid credentials");
+  }
+
+  const { id, email, name, currency, createdAt } = found;
+  const user = { id, email, name, currency, createdAt };
+
+  const accessToken = generateAccessToken(id);
+  const refreshToken = generateRefreshToken(id);
+
+  await prisma.refreshToken.create({
+    data: {
+      userId: id,
+      tokenHash: hashToken(refreshToken),
+      expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+    },
+  });
+
+  return { user, accessToken, refreshToken };
+}
+
+export async function logout(refreshToken: string | undefined) {
+  if (!refreshToken) return;
+
+  await prisma.refreshToken.deleteMany({
+    where: { tokenHash: hashToken(refreshToken) },
+  });
 }
