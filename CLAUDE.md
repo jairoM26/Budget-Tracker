@@ -86,6 +86,12 @@ Project-specific skills are in `.claude/skills/`. Consult the relevant skill bef
 - Tests live alongside code (unit) or in `tests/` directory (integration).
 - Every PR must pass: typecheck → lint → tests before merge.
 
+## Testing Rules
+
+- **Tests are not optional.** Every PR must include tests for the code it introduces. No exceptions.
+- **Never modify code just to make a test pass.** If a test fails, analyze the root cause first. The fix must address the real problem — not paper over it. If the test itself is wrong, fix the test and explain why.
+- **Failing tests block the PR.** A PR with failing tests is not ready for review, regardless of how small the change is.
+
 ## Current Status
 
 Milestone 0 (Foundation) scaffold is complete. All tasks on the board are `todo`. Next milestone: **Milestone 1 — Authentication**.
