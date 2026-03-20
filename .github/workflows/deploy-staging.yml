@@ -1,0 +1,17 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-api:
+    name: Deploy API to Render (staging)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render staging deploy
+        run: |
+          curl -f -X POST "${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}"
+
+  # The frontend is deployed automatically by Vercel on every push to main.
+  # No step needed here — Vercel's GitHub integration handles it.
