@@ -1,10 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import * as authService from "../services/auth";
 
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
+
 const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "strict" as const,
+  secure: IS_PRODUCTION,
+  sameSite: (IS_PRODUCTION ? "none" : "strict") as "none" | "strict",
   maxAge: 7 * 24 * 60 * 60 * 1000,
   path: "/auth/refresh",
 };
@@ -16,8 +18,8 @@ function setRefreshCookie(res: Response, token: string) {
 function clearRefreshCookie(res: Response) {
   res.clearCookie("refreshToken", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict" as const,
+    secure: IS_PRODUCTION,
+    sameSite: (IS_PRODUCTION ? "none" : "strict") as "none" | "strict",
     path: "/auth/refresh",
   });
 }
