@@ -5,6 +5,7 @@ import { errorHandler } from "./middleware/errorHandler";
 import authRouter from "./routes/auth";
 import categoryRouter from "./routes/categories";
 import transactionRouter from "./routes/transactions";
+import budgetRouter from "./routes/budgets";
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.get("/health", (_req, res) => {
 app.use("/auth", authRouter);
 app.use("/categories", categoryRouter);
 app.use("/transactions", transactionRouter);
+app.use("/budgets", budgetRouter);
 
 app.use((_req, res) => {
   res.status(404).json({
