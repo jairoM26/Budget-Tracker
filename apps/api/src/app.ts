@@ -3,6 +3,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { errorHandler } from "./middleware/errorHandler";
 import authRouter from "./routes/auth";
+import categoryRouter from "./routes/categories";
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/auth", authRouter);
+app.use("/categories", categoryRouter);
 
 app.use((_req, res) => {
   res.status(404).json({
