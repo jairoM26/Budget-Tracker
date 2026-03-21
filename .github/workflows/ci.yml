@@ -39,6 +39,10 @@ jobs:
       - name: Build shared package
         run: npm run build --workspace=packages/shared
 
+      - name: Generate Prisma client
+        run: npx prisma generate
+        working-directory: apps/api
+
       - name: Type check
         run: npm run typecheck --workspaces --if-present
 
@@ -50,10 +54,6 @@ jobs:
         working-directory: apps/api
         env:
           DATABASE_URL: postgresql://budget:budget_local@localhost:5432/budget_test
-
-      - name: Generate Prisma client
-        run: npx prisma generate
-        working-directory: apps/api
 
       - name: Run API tests
         run: npm run test --workspace=apps/api

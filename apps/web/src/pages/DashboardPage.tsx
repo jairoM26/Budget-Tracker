@@ -15,6 +15,9 @@ export function DashboardPage() {
               <Link to="/categories" className="hover:text-foreground transition-colors">
                 Categories
               </Link>
+              <Link to="/transactions" className="hover:text-foreground transition-colors">
+                Transactions
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-4">

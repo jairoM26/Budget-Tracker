@@ -118,6 +118,9 @@ export function CategoriesPage() {
               <Link to="/categories" className="text-foreground font-medium">
                 Categories
               </Link>
+              <Link to="/transactions" className="hover:text-foreground transition-colors">
+                Transactions
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-4">
