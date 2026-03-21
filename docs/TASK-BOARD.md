@@ -163,6 +163,14 @@ Tasks are sized by **relative complexity and uncertainty**, not time. Use past c
 
 ---
 
+## Backlog — Deferred requests
+
+| ID    | Task                                                           | Size | Status | Notes |
+|-------|----------------------------------------------------------------|------|--------|-------|
+| T-B01 | Change password — settings page with current password verification | S | todo | Requires `POST /auth/change-password` endpoint + settings UI |
+
+---
+
 ## Milestone 7 — Polish and hardening
 
 > Goal: the app is stable, secure, and handles all edge cases gracefully.
