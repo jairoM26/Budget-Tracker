@@ -1,6 +1,23 @@
 import { Request, Response, NextFunction } from "express";
 import { ZodSchema, ZodError } from "zod";
 
+export function validateQuery(schema: ZodSchema) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const result = schema.safeParse(req.query);
+
+    if (!result.success) {
+      const fields = formatZodErrors(result.error);
+      return res.status(400).json({
+        success: false,
+        error: { code: "VALIDATION_ERROR", message: "Invalid query parameters", fields },
+      });
+    }
+
+    req.query = result.data;
+    next();
+  };
+}
+
 export function validate(schema: ZodSchema) {
   return (req: Request, res: Response, next: NextFunction) => {
     const result = schema.safeParse(req.body);
