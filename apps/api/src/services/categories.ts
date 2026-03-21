@@ -54,3 +54,20 @@ export async function remove(userId: string, id: string) {
 
   await prisma.category.delete({ where: { id } });
 }
+
+export async function reassign(userId: string, sourceId: string, targetId: string) {
+  const source = await prisma.category.findUnique({ where: { id: sourceId } });
+  if (!source) throw new NotFoundError("Category not found");
+  if (source.userId !== userId) throw new ForbiddenError();
+
+  const target = await prisma.category.findUnique({ where: { id: targetId } });
+  if (!target) throw new NotFoundError("Target category not found");
+  if (target.userId !== userId) throw new ForbiddenError();
+
+  await prisma.$transaction([
+    prisma.transaction.updateMany({ where: { categoryId: sourceId }, data: { categoryId: targetId } }),
+    prisma.recurringRule.updateMany({ where: { categoryId: sourceId }, data: { categoryId: targetId } }),
+    prisma.budgetCategory.deleteMany({ where: { categoryId: sourceId } }),
+    prisma.category.delete({ where: { id: sourceId } }),
+  ]);
+}
