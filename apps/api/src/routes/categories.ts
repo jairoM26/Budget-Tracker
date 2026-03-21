@@ -12,5 +12,6 @@ router.get("/", categoryController.getCategories);
 router.post("/", validate(createCategorySchema), categoryController.createCategory);
 router.patch("/:id", validate(updateCategorySchema), categoryController.updateCategory);
 router.delete("/:id", categoryController.deleteCategory);
+router.post("/:id/reassign", categoryController.reassignCategory);
 
 export default router;

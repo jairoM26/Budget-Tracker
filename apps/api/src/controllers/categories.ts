@@ -36,3 +36,12 @@ export async function deleteCategory(req: Request, res: Response, next: NextFunc
     next(error);
   }
 }
+
+export async function reassignCategory(req: Request, res: Response, next: NextFunction) {
+  try {
+    await categoryService.reassign(req.user.id, req.params.id, req.body.targetCategoryId);
+    res.json({ success: true });
+  } catch (error) {
+    next(error);
+  }
+}
