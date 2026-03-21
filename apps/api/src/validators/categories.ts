@@ -9,12 +9,7 @@ export const createCategorySchema = z.object({
   type: z.enum(["INCOME", "EXPENSE"]).nullable().optional(),
 });
 
-export const updateCategorySchema = z.object({
-  name: z.string().min(1).max(50).optional(),
-  color: hexColor.optional(),
-  icon: z.string().min(1).max(50).optional(),
-  type: z.enum(["INCOME", "EXPENSE"]).nullable().optional(),
-});
+export const updateCategorySchema = createCategorySchema.partial();
 
 export type CreateCategoryInput = z.infer<typeof createCategorySchema>;
 export type UpdateCategoryInput = z.infer<typeof updateCategorySchema>;

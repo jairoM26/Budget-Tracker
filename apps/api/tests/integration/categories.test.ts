@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { request, createTestUser, authHeader } from "./helpers";
+import { request, createTestUser, authHeader } from "../helpers";
 
 describe("Categories API", () => {
   let token: string;
