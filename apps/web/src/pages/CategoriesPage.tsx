@@ -5,6 +5,7 @@ import { CategoryForm } from "../components/forms/CategoryForm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
+import { CurrencySelector } from "../components/CurrencySelector";
 
 type DeleteState =
   | { status: "idle" }
@@ -127,6 +128,7 @@ export function CategoriesPage() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
+            <CurrencySelector />
             <span className="text-sm text-muted-foreground">{user?.name}</span>
             <Button variant="ghost" size="sm" onClick={logout}>
               Sign out

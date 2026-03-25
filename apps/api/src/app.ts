@@ -6,6 +6,7 @@ import authRouter from "./routes/auth";
 import categoryRouter from "./routes/categories";
 import transactionRouter from "./routes/transactions";
 import budgetRouter from "./routes/budgets";
+import userRouter from "./routes/users";
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use("/auth", authRouter);
 app.use("/categories", categoryRouter);
 app.use("/transactions", transactionRouter);
 app.use("/budgets", budgetRouter);
+app.use("/users", userRouter);
 
 app.use((_req, res) => {
   res.status(404).json({

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { CURRENCIES, type Currency } from "../lib/currency";
 
 export function RegisterPage() {
   const { register } = useAuth();
@@ -13,6 +14,7 @@ export function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [currency, setCurrency] = useState<Currency>("USD");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -22,7 +24,7 @@ export function RegisterPage() {
     setIsSubmitting(true);
 
     try {
-      await register(email, password, name);
+      await register(email, password, name, currency);
       navigate("/", { replace: true });
     } catch (err: unknown) {
       const apiErr = err as { response?: { data?: { error?: { message?: string; fields?: Record<string, string> } } } };
@@ -94,6 +96,22 @@ export function RegisterPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="currency">Currency</Label>
+                <select
+                  id="currency"
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value as Currency)}
+                  className="flex h-9 w-full rounded-md border border-input bg-input px-3 py-1 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                >
+                  {CURRENCIES.map((c) => (
+                    <option key={c.value} value={c.value}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
               </div>
             </CardContent>
 

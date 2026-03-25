@@ -6,6 +6,9 @@ import { useCategories } from "../hooks/useCategories";
 import { BudgetForm } from "../components/forms/BudgetForm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatAmount } from "../lib/currency";
+import type { Currency } from "../lib/currency";
+import { CurrencySelector } from "../components/CurrencySelector";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -36,6 +39,7 @@ function formatMonth(year: number, month: number) {
 
 export function BudgetsPage() {
   const { user, logout } = useAuth();
+  const userCurrency = (user?.currency ?? "USD") as Currency;
   const { budgets, isLoading, error, createBudget, updateBudget, deleteBudget } = useBudgets();
   const { categories } = useCategories();
 
@@ -114,6 +118,7 @@ export function BudgetsPage() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
+            <CurrencySelector />
             <span className="text-sm text-muted-foreground">{user?.name}</span>
             <Button variant="ghost" size="sm" onClick={logout}>
               Sign out
@@ -178,7 +183,7 @@ export function BudgetsPage() {
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm">{formatMonth(budget.year, budget.month)}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        ${spent} spent of ${budget.totalLimit} total limit
+                        {formatAmount(spent, userCurrency)} spent of {formatAmount(budget.totalLimit, userCurrency)} total limit
                       </p>
                     </div>
 
@@ -237,9 +242,9 @@ export function BudgetsPage() {
                                 {bc.category.name}
                               </span>
                               <span className={`text-xs font-mono ${isOver ? "text-destructive" : "text-foreground"}`}>
-                                ${bc.spent}
+                                {formatAmount(bc.spent, userCurrency)}
                               </span>
-                              <span className="text-xs text-muted-foreground">/ ${bc.limitAmount}</span>
+                              <span className="text-xs text-muted-foreground">/ {formatAmount(bc.limitAmount, userCurrency)}</span>
                             </div>
                             <ProgressBar spent={bc.spent} limit={bc.limitAmount} />
                           </div>

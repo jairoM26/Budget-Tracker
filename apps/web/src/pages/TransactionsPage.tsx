@@ -7,6 +7,9 @@ import { TransactionForm } from "../components/forms/TransactionForm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { formatSignedAmount } from "../lib/currency";
+import type { Currency } from "../lib/currency";
+import { CurrencySelector } from "../components/CurrencySelector";
 
 type FormMode = "hidden" | "create" | "edit";
 
@@ -18,10 +21,6 @@ function formatDate(isoString: string): string {
   });
 }
 
-function formatAmount(amount: string, type: "INCOME" | "EXPENSE"): string {
-  const sign = type === "INCOME" ? "+" : "-";
-  return `${sign}$${amount}`;
-}
 
 export function TransactionsPage() {
   const { user, logout } = useAuth();
@@ -143,6 +142,7 @@ export function TransactionsPage() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
+            <CurrencySelector />
             <span className="text-sm text-muted-foreground">{user?.name}</span>
             <Button variant="ghost" size="sm" onClick={logout}>
               Sign out
@@ -285,7 +285,7 @@ export function TransactionsPage() {
                         {tx.type === "INCOME" ? "Income" : "Expense"}
                       </span>
                       <span className={`font-mono font-medium text-sm ${amountClass(tx.type)}`}>
-                        {formatAmount(tx.amount, tx.type)}
+                        {formatSignedAmount(tx.amount, tx.type, (user?.currency ?? "USD") as Currency)}
                       </span>
                     </div>
 

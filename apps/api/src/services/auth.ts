@@ -39,6 +39,7 @@ export async function register(input: RegisterInput) {
       email: input.email,
       passwordHash,
       name: input.name,
+      currency: input.currency ?? "USD",
       categories: {
         create: DEFAULT_CATEGORIES,
       },
@@ -131,7 +132,12 @@ export async function refresh(refreshToken: string | undefined) {
 
   const accessToken = generateAccessToken(payload.sub);
 
-  return { accessToken, refreshToken: newRefreshToken };
+  const user = await prisma.user.findUnique({
+    where: { id: payload.sub },
+    select: { id: true, email: true, name: true, currency: true, createdAt: true },
+  });
+
+  return { accessToken, refreshToken: newRefreshToken, user };
 }
 
 export async function logout(refreshToken: string | undefined) {
