@@ -7,6 +7,7 @@ import categoryRouter from "./routes/categories";
 import transactionRouter from "./routes/transactions";
 import budgetRouter from "./routes/budgets";
 import userRouter from "./routes/users";
+import recurringRuleRouter from "./routes/recurring-rules";
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use("/categories", categoryRouter);
 app.use("/transactions", transactionRouter);
 app.use("/budgets", budgetRouter);
 app.use("/users", userRouter);
+app.use("/recurring-rules", recurringRuleRouter);
 
 app.use((_req, res) => {
   res.status(404).json({

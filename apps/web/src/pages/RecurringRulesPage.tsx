@@ -1,50 +1,40 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import { useBudgets, Budget, CreateBudgetInput } from "../hooks/useBudgets";
+import { useRecurringRules, RecurringRule, CreateRecurringRuleInput } from "../hooks/useRecurringRules";
 import { useCategories } from "../hooks/useCategories";
-import { BudgetForm } from "../components/forms/BudgetForm";
+import { RecurringRuleForm } from "../components/forms/RecurringRuleForm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CurrencySelector } from "../components/CurrencySelector";
 import { formatAmount } from "../lib/currency";
 import type { Currency } from "../lib/currency";
-import { CurrencySelector } from "../components/CurrencySelector";
-
-const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
 
 type FormMode = "hidden" | "create" | "edit";
 
-function ProgressBar({ spent, limit }: { spent: string; limit: string }) {
-  const spentNum = parseFloat(spent);
-  const limitNum = parseFloat(limit);
-  const pct = limitNum > 0 ? Math.min((spentNum / limitNum) * 100, 100) : 0;
-  const isOver = limitNum > 0 && spentNum > limitNum;
+const FREQUENCY_LABELS: Record<string, string> = {
+  DAILY: "Daily",
+  WEEKLY: "Weekly",
+  MONTHLY: "Monthly",
+  YEARLY: "Yearly",
+};
 
-  return (
-    <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
-      <div
-        className={`h-full rounded-full transition-all ${isOver ? "bg-destructive" : "bg-primary"}`}
-        style={{ width: `${pct}%` }}
-      />
-    </div>
-  );
+function formatDate(isoString: string): string {
+  return new Date(isoString).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 }
 
-function formatMonth(year: number, month: number) {
-  return `${MONTHS[month - 1]} ${year}`;
-}
-
-export function BudgetsPage() {
+export function RecurringRulesPage() {
   const { user, logout } = useAuth();
   const userCurrency = (user?.currency ?? "USD") as Currency;
-  const { budgets, isLoading, error, createBudget, updateBudget, deleteBudget } = useBudgets();
+  const { rules, isLoading, error, createRule, updateRule, deleteRule } = useRecurringRules();
   const { categories } = useCategories();
 
   const [formMode, setFormMode] = useState<FormMode>("hidden");
-  const [editTarget, setEditTarget] = useState<Budget | null>(null);
+  const [editTarget, setEditTarget] = useState<RecurringRule | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
@@ -55,8 +45,8 @@ export function BudgetsPage() {
     setDeleteConfirmId(null);
   }
 
-  function openEdit(budget: Budget) {
-    setEditTarget(budget);
+  function openEdit(rule: RecurringRule) {
+    setEditTarget(rule);
     setFormMode("edit");
     setDeleteConfirmId(null);
   }
@@ -66,14 +56,14 @@ export function BudgetsPage() {
     setEditTarget(null);
   }
 
-  async function handleFormSubmit(data: CreateBudgetInput) {
+  async function handleFormSubmit(data: CreateRecurringRuleInput) {
     if (formMode === "edit" && editTarget) {
-      await updateBudget(editTarget.id, {
-        totalLimit: data.totalLimit,
-        categories: data.categories,
+      await updateRule(editTarget.id, {
+        ...data,
+        nextDue: data.startDate,
       });
     } else {
-      await createBudget(data);
+      await createRule(data);
     }
     closeForm();
   }
@@ -82,20 +72,19 @@ export function BudgetsPage() {
     setIsDeleting(true);
     setDeleteError("");
     try {
-      await deleteBudget(id);
+      await deleteRule(id);
       setDeleteConfirmId(null);
     } catch {
-      setDeleteError("Failed to delete budget");
+      setDeleteError("Failed to delete rule");
     } finally {
       setIsDeleting(false);
     }
   }
 
-  function totalSpent(budget: Budget) {
-    return budget.categories
-      .reduce((sum, c) => sum + parseFloat(c.spent), 0)
-      .toFixed(2);
-  }
+  const typeBadgeClass = (type: "INCOME" | "EXPENSE") =>
+    type === "INCOME"
+      ? "bg-green-500/10 text-green-400"
+      : "bg-red-500/10 text-red-400";
 
   return (
     <div className="min-h-screen bg-muted/40">
@@ -112,10 +101,10 @@ export function BudgetsPage() {
               <Link to="/transactions" className="hover:text-foreground transition-colors">
                 Transactions
               </Link>
-              <Link to="/budgets" className="text-foreground font-medium">
+              <Link to="/budgets" className="hover:text-foreground transition-colors">
                 Budgets
               </Link>
-              <Link to="/recurring-rules" className="hover:text-foreground transition-colors">
+              <Link to="/recurring-rules" className="text-foreground font-medium">
                 Recurring
               </Link>
             </nav>
@@ -132,10 +121,10 @@ export function BudgetsPage() {
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl font-semibold tracking-tight">Budgets</h1>
+          <h1 className="text-xl font-semibold tracking-tight">Recurring Rules</h1>
           {formMode === "hidden" && (
             <Button size="sm" onClick={openCreate}>
-              New budget
+              New rule
             </Button>
           )}
         </div>
@@ -145,11 +134,11 @@ export function BudgetsPage() {
           <Card className="mb-6">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">
-                {formMode === "edit" ? "Edit budget" : "New budget"}
+                {formMode === "edit" ? "Edit rule" : "New recurring rule"}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <BudgetForm
+              <RecurringRuleForm
                 initial={editTarget}
                 categories={categories}
                 onSubmit={handleFormSubmit}
@@ -161,43 +150,56 @@ export function BudgetsPage() {
 
         {/* Loading / error */}
         {isLoading && (
-          <p className="text-sm text-muted-foreground text-center py-12">Loading budgets…</p>
+          <p className="text-sm text-muted-foreground text-center py-12">Loading rules…</p>
         )}
         {error && !isLoading && (
           <p className="text-sm text-destructive text-center py-12">{error}</p>
         )}
 
         {/* Empty state */}
-        {!isLoading && !error && budgets.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-12">No budgets yet.</p>
+        {!isLoading && !error && rules.length === 0 && (
+          <p className="text-sm text-muted-foreground text-center py-12">No recurring rules yet.</p>
         )}
 
-        {/* Budget list */}
-        {!isLoading && !error && budgets.length > 0 && (
-          <div className="space-y-4">
-            {budgets.map((budget) => {
-              const isConfirming = deleteConfirmId === budget.id;
-              const spent = totalSpent(budget);
+        {/* Rules list */}
+        {!isLoading && !error && rules.length > 0 && (
+          <div className="space-y-2">
+            {rules.map((rule) => {
+              const isConfirming = deleteConfirmId === rule.id;
 
               return (
-                <Card key={budget.id} className="overflow-hidden">
-                  {/* Budget header */}
+                <Card key={rule.id} className="overflow-hidden">
                   <div className="flex items-center gap-4 px-4 py-3">
+                    {/* Category color swatch */}
+                    <div
+                      className="h-8 w-8 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: rule.category.color }}
+                    />
+
+                    {/* Description + meta */}
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm">{formatMonth(budget.year, budget.month)}</p>
+                      <p className="font-medium text-sm truncate">{rule.description}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {formatAmount(spent, userCurrency)} spent of {formatAmount(budget.totalLimit, userCurrency)} total limit
+                        {rule.category.name} · {FREQUENCY_LABELS[rule.frequency]} · Next: {formatDate(rule.nextDue)}
+                        {rule.endDate && ` · Ends: ${formatDate(rule.endDate)}`}
                       </p>
                     </div>
 
-                    {/* Overall progress */}
-                    <div className="w-32 hidden sm:block">
-                      <ProgressBar spent={spent} limit={budget.totalLimit} />
-                      <p className="text-xs text-muted-foreground text-right mt-1">
-                        {parseFloat(budget.totalLimit) > 0
-                          ? `${Math.round((parseFloat(spent) / parseFloat(budget.totalLimit)) * 100)}%`
-                          : "—"}
-                      </p>
+                    {/* Amount + badges */}
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      {!rule.active && (
+                        <span className="text-xs px-1.5 py-0.5 rounded-full bg-secondary text-secondary-foreground">
+                          Paused
+                        </span>
+                      )}
+                      <span
+                        className={`text-xs px-1.5 py-0.5 rounded-full ${typeBadgeClass(rule.type)}`}
+                      >
+                        {rule.type === "INCOME" ? "Income" : "Expense"}
+                      </span>
+                      <span className="font-mono font-medium text-sm">
+                        {formatAmount(rule.amount, userCurrency)}
+                      </span>
                     </div>
 
                     {/* Actions */}
@@ -206,7 +208,17 @@ export function BudgetsPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => openEdit(budget)}
+                          onClick={() =>
+                            updateRule(rule.id, { active: !rule.active })
+                          }
+                          className="text-muted-foreground hover:text-foreground"
+                        >
+                          {rule.active ? "Pause" : "Resume"}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openEdit(rule)}
                           className="text-muted-foreground hover:text-foreground"
                         >
                           Edit
@@ -215,7 +227,7 @@ export function BudgetsPage() {
                           variant="ghost"
                           size="sm"
                           onClick={() => {
-                            setDeleteConfirmId(budget.id);
+                            setDeleteConfirmId(rule.id);
                             setDeleteError("");
                           }}
                           className="text-muted-foreground hover:text-destructive"
@@ -226,41 +238,11 @@ export function BudgetsPage() {
                     )}
                   </div>
 
-                  {/* Category breakdown */}
-                  {budget.categories.length > 0 && !isConfirming && (
-                    <div className="border-t border-border px-4 py-3 space-y-2.5">
-                      {budget.categories.map((bc) => {
-                        const spentNum = parseFloat(bc.spent);
-                        const limitNum = parseFloat(bc.limitAmount);
-                        const isOver = spentNum > limitNum;
-
-                        return (
-                          <div key={bc.id}>
-                            <div className="flex items-center gap-2 mb-1">
-                              <div
-                                className="h-2.5 w-2.5 rounded-full flex-shrink-0"
-                                style={{ backgroundColor: bc.category.color }}
-                              />
-                              <span className="text-xs flex-1 min-w-0 truncate text-muted-foreground">
-                                {bc.category.name}
-                              </span>
-                              <span className={`text-xs font-mono ${isOver ? "text-destructive" : "text-foreground"}`}>
-                                {formatAmount(bc.spent, userCurrency)}
-                              </span>
-                              <span className="text-xs text-muted-foreground">/ {formatAmount(bc.limitAmount, userCurrency)}</span>
-                            </div>
-                            <ProgressBar spent={bc.spent} limit={bc.limitAmount} />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-
                   {/* Delete confirmation */}
                   {isConfirming && (
                     <div className="border-t border-border px-4 py-3 bg-secondary/30 flex items-center justify-between gap-4">
                       <p className="text-sm text-muted-foreground">
-                        Delete budget for {formatMonth(budget.year, budget.month)}?
+                        Delete &quot;{rule.description}&quot;?
                       </p>
                       {deleteError && (
                         <p className="text-xs text-destructive">{deleteError}</p>
@@ -277,7 +259,7 @@ export function BudgetsPage() {
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => handleDelete(budget.id)}
+                          onClick={() => handleDelete(rule.id)}
                           disabled={isDeleting}
                         >
                           {isDeleting ? "Deleting…" : "Confirm delete"}

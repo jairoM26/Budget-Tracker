@@ -22,6 +22,9 @@ export function DashboardPage() {
               <Link to="/budgets" className="hover:text-foreground transition-colors">
                 Budgets
               </Link>
+              <Link to="/recurring-rules" className="hover:text-foreground transition-colors">
+                Recurring
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-4">
