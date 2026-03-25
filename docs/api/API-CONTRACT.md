@@ -5,7 +5,7 @@
 | Version      | 1.0                          |
 | Status       | Draft                        |
 | Base URL     | `https://api.budget-app.com` |
-| Last updated | 2026-03-19                   |
+| Last updated | 2026-03-24                   |
 
 ---
 
@@ -60,9 +60,17 @@ Create a new user account.
 {
   "email": "user@example.com",
   "password": "minimum8chars",
-  "name": "Jane Doe"
+  "name": "Jane Doe",
+  "currency": "USD"
 }
 ```
+
+| Field      | Type   | Required | Description                              |
+|------------|--------|----------|------------------------------------------|
+| `email`    | string | Yes      | Valid email address                      |
+| `password` | string | Yes      | Minimum 8 characters                     |
+| `name`     | string | Yes      | 1–100 characters                         |
+| `currency` | string | No       | `"USD"` or `"CRC"`, defaults to `"USD"` |
 
 **Response 201**
 ```json
@@ -122,7 +130,10 @@ Issue a new access token using the refresh token cookie.
 ```json
 {
   "success": true,
-  "data": { "accessToken": "eyJ..." }
+  "data": {
+    "accessToken": "eyJ...",
+    "user": { "id": "uuid", "email": "...", "name": "...", "currency": "USD", "createdAt": "..." }
+  }
 }
 ```
 
@@ -171,7 +182,7 @@ Update the authenticated user's profile.
 ```json
 {
   "name": "Jane Smith",
-  "currency": "EUR"
+  "currency": "CRC"
 }
 ```
 

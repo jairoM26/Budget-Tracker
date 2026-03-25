@@ -1,19 +1,21 @@
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
 import { api, setAccessToken } from "../lib/api";
+import type { Currency } from "../lib/currency";
 
 interface User {
   id: string;
   email: string;
   name: string;
-  currency: string;
+  currency: Currency;
 }
 
 interface AuthContextValue {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
+  register: (email: string, password: string, name: string, currency?: Currency) => Promise<void>;
   logout: () => Promise<void>;
+  updateProfile: (data: { name?: string; currency?: Currency }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -56,8 +58,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(data.data.user);
   }, []);
 
-  const register = useCallback(async (email: string, password: string, name: string) => {
-    const { data } = await api.post("/auth/register", { email, password, name });
+  const register = useCallback(async (email: string, password: string, name: string, currency?: Currency) => {
+    const { data } = await api.post("/auth/register", { email, password, name, currency });
     setAccessToken(data.data.accessToken);
     setUser(data.data.user);
   }, []);
@@ -68,8 +70,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const updateProfile = useCallback(async (profileData: { name?: string; currency?: Currency }) => {
+    const { data } = await api.patch("/users/me", profileData);
+    setUser(data.data);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

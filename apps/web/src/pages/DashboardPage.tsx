@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { CurrencySelector } from "../components/CurrencySelector";
 
 export function DashboardPage() {
   const { user, logout } = useAuth();
@@ -24,6 +25,7 @@ export function DashboardPage() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
+            <CurrencySelector />
             <span className="text-sm text-muted-foreground">{user?.name}</span>
             <Button variant="ghost" size="sm" onClick={logout}>
               Sign out

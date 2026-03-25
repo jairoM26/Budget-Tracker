@@ -46,9 +46,9 @@ export async function login(req: Request, res: Response, next: NextFunction) {
 
 export async function refresh(req: Request, res: Response, next: NextFunction) {
   try {
-    const { accessToken, refreshToken } = await authService.refresh(req.cookies?.refreshToken);
+    const { accessToken, refreshToken, user } = await authService.refresh(req.cookies?.refreshToken);
     setRefreshCookie(res, refreshToken);
-    res.json({ success: true, data: { accessToken } });
+    res.json({ success: true, data: { accessToken, user } });
   } catch (error) {
     next(error);
   }
