@@ -137,6 +137,9 @@ export function TransactionsPage() {
               <Link to="/transactions" className="text-foreground font-medium">
                 Transactions
               </Link>
+              <Link to="/budgets" className="hover:text-foreground transition-colors">
+                Budgets
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-4">
