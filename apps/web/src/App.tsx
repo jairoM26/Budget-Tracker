@@ -7,6 +7,7 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { CategoriesPage } from "./pages/CategoriesPage";
 import { TransactionsPage } from "./pages/TransactionsPage";
 import { BudgetsPage } from "./pages/BudgetsPage";
+import { RecurringRulesPage } from "./pages/RecurringRulesPage";
 
 function App() {
   return (
@@ -44,6 +45,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <BudgetsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/recurring-rules"
+            element={
+              <ProtectedRoute>
+                <RecurringRulesPage />
               </ProtectedRoute>
             }
           />
