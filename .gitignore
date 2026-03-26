@@ -6,4 +6,5 @@ dist/
 coverage/
 .DS_Store
 
-.claude/apps/web/test-results/
+# Claude Code — keep skills, ignore local config
+.claude/settings.local.json
