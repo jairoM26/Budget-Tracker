@@ -78,8 +78,9 @@ export function RecurringRuleForm({ initial, categories, onSubmit, onCancel }: R
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <Label>Type</Label>
+          <Label htmlFor="rr-type">Type</Label>
           <select
+            id="rr-type"
             value={type}
             onChange={(e) => handleTypeChange(e.target.value as "INCOME" | "EXPENSE")}
             className="flex h-9 w-full rounded-md border border-input bg-input px-3 py-1 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
@@ -90,8 +91,9 @@ export function RecurringRuleForm({ initial, categories, onSubmit, onCancel }: R
         </div>
 
         <div className="space-y-1.5">
-          <Label>Category</Label>
+          <Label htmlFor="rr-category">Category</Label>
           <select
+            id="rr-category"
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
             required
@@ -121,8 +123,9 @@ export function RecurringRuleForm({ initial, categories, onSubmit, onCancel }: R
         </div>
 
         <div className="space-y-1.5">
-          <Label>Frequency</Label>
+          <Label htmlFor="rr-frequency">Frequency</Label>
           <select
+            id="rr-frequency"
             value={frequency}
             onChange={(e) => setFrequency(e.target.value as CreateRecurringRuleInput["frequency"])}
             className="flex h-9 w-full rounded-md border border-input bg-input px-3 py-1 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"

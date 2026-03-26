@@ -16,9 +16,35 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Shared refresh lock — prevents concurrent refresh calls from racing
+let refreshPromise: Promise<{ accessToken: string; user: unknown }> | null = null;
+
+/**
+ * Call POST /auth/refresh exactly once at a time.
+ * All concurrent callers share the same in-flight promise.
+ */
+export function silentRefresh(): Promise<{ accessToken: string; user: unknown }> {
+  if (refreshPromise) {
+    return refreshPromise;
+  }
+
+  refreshPromise = axios
+    .post(`${BASE_URL}/auth/refresh`, {}, { withCredentials: true })
+    .then(({ data }) => {
+      const newToken: string = data.data.accessToken;
+      setAccessToken(newToken);
+      return { accessToken: newToken, user: data.data.user ?? null };
+    })
+    .finally(() => {
+      refreshPromise = null;
+    });
+
+  return refreshPromise;
+}
+
 // Silent refresh on 401
+let refreshQueue: Array<{ resolve: (token: string) => void; reject: (err: unknown) => void }> = [];
 let isRefreshing = false;
-let refreshQueue: Array<(token: string) => void> = [];
 
 api.interceptors.response.use(
   (response) => response,
@@ -30,10 +56,13 @@ api.interceptors.response.use(
     }
 
     if (isRefreshing) {
-      return new Promise((resolve) => {
-        refreshQueue.push((token) => {
-          original.headers.Authorization = `Bearer ${token}`;
-          resolve(api(original));
+      return new Promise((resolve, reject) => {
+        refreshQueue.push({
+          resolve: (token: string) => {
+            original.headers.Authorization = `Bearer ${token}`;
+            resolve(api(original));
+          },
+          reject,
         });
       });
     }
@@ -42,18 +71,13 @@ api.interceptors.response.use(
     isRefreshing = true;
 
     try {
-      const { data } = await axios.post(
-        `${BASE_URL}/auth/refresh`,
-        {},
-        { withCredentials: true }
-      );
-      const newToken = data.data.accessToken;
-      setAccessToken(newToken);
-      refreshQueue.forEach((cb) => cb(newToken));
+      const { accessToken } = await silentRefresh();
+      refreshQueue.forEach(({ resolve }) => resolve(accessToken));
       refreshQueue = [];
-      original.headers.Authorization = `Bearer ${newToken}`;
+      original.headers.Authorization = `Bearer ${accessToken}`;
       return api(original);
-    } catch {
+    } catch (refreshError) {
+      refreshQueue.forEach(({ reject }) => reject(refreshError));
       refreshQueue = [];
       setAccessToken(null);
       window.dispatchEvent(new Event("auth:logout"));

@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
-import { api, setAccessToken } from "../lib/api";
+import { api, setAccessToken, silentRefresh } from "../lib/api";
 import type { Currency } from "../lib/currency";
 
 interface User {
@@ -26,13 +26,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Restore session on mount via refresh cookie
   useEffect(() => {
-    api
-      .post("/auth/refresh")
-      .then(({ data }) => {
-        setAccessToken(data.data.accessToken);
-        setUser(data.data.user ?? null);
-        // If refresh doesn't return user, fetch it
-        if (!data.data.user) {
+    silentRefresh()
+      .then(({ user: refreshUser }) => {
+        setUser(refreshUser as User | null);
+        // If refresh didn't return user, fetch it
+        if (!refreshUser) {
           return api.get("/users/me").then(({ data: u }) => setUser(u.data));
         }
       })

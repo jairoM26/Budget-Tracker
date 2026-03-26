@@ -6,4 +6,4 @@ dist/
 coverage/
 .DS_Store
 
-.claude/
+.claude/apps/web/test-results/

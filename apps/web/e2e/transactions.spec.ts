@@ -1,32 +1,16 @@
 import { test, expect } from "@playwright/test";
-
-// Each test run uses a unique email to avoid conflicts between runs
-function uniqueEmail() {
-  return `e2e-${Date.now()}@example.com`;
-}
-
-async function registerAndLogin(page: import("@playwright/test").Page, email: string) {
-  await page.goto("/register");
-  await page.getByLabel("Name").fill("E2E User");
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill("password123");
-  await page.getByRole("button", { name: /create account/i }).click();
-  await page.waitForURL("/");
-}
+import { uniqueEmail, registerAndLogin } from "./helpers";
 
 test.describe("Transactions journey", () => {
-  let email: string;
-
   test.beforeEach(async ({ page }) => {
-    email = uniqueEmail();
-    await registerAndLogin(page, email);
+    await registerAndLogin(page, uniqueEmail());
   });
 
   test("create → view → edit → delete a transaction", async ({ page }) => {
     // Navigate to categories first to create one (transactions require a category)
     await page.goto("/categories");
     await page.getByRole("button", { name: /new category/i }).click();
-    await page.getByLabel("Name").fill("E2E Groceries");
+    await page.locator("#cat-name").fill("E2E Groceries");
     // Type defaults to "Both" — leave as is
     await page.getByRole("button", { name: /create category/i }).click();
 
@@ -79,7 +63,7 @@ test.describe("Transactions journey", () => {
     // Create a category
     await page.goto("/categories");
     await page.getByRole("button", { name: /new category/i }).click();
-    await page.getByLabel("Name").fill("Filter Test Cat");
+    await page.locator("#cat-name").fill("Filter Test Cat");
     await page.getByRole("button", { name: /create category/i }).click();
     await expect(page.getByText("Filter Test Cat")).toBeVisible();
 
@@ -104,8 +88,8 @@ test.describe("Transactions journey", () => {
     await page.getByRole("button", { name: /add transaction/i }).click();
     await expect(page.getByText("Income txn")).toBeVisible();
 
-    // Apply type filter = EXPENSE
-    await page.locator("select").first().selectOption("EXPENSE");
+    // Apply type filter = EXPENSE — target the filter select (has "All types" option)
+    await page.locator("select", { hasText: "All types" }).selectOption("EXPENSE");
     await page.getByRole("button", { name: /apply filters/i }).click();
 
     await expect(page.getByText("Expense txn")).toBeVisible();
