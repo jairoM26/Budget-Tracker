@@ -42,6 +42,8 @@ model RefreshToken {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Category {
@@ -56,6 +58,8 @@ model Category {
   transactions     Transaction[]
   budgetCategories BudgetCategory[]
   recurringRules   RecurringRule[]
+
+  @@index([userId])
 }
 
 model Budget {
@@ -97,6 +101,10 @@ model Transaction {
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   category      Category       @relation(fields: [categoryId], references: [id])
   recurringRule RecurringRule? @relation(fields: [recurringRuleId], references: [id])
+
+  @@index([userId, date])
+  @@index([userId, type])
+  @@index([categoryId])
 }
 
 model RecurringRule {
@@ -114,4 +122,6 @@ model RecurringRule {
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   category     Category      @relation(fields: [categoryId], references: [id])
   transactions Transaction[]
+
+  @@index([userId, active])
 }
