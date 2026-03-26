@@ -1,7 +1,8 @@
 import { RequestHandler } from "express";
 import rateLimit from "express-rate-limit";
 
-const isTest = process.env.NODE_ENV === "test";
+const isTest =
+  process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development";
 
 const noopMiddleware: RequestHandler = (_req, _res, next) => next();
 
