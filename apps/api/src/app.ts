@@ -1,7 +1,9 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import morgan from "morgan";
 import { errorHandler } from "./middleware/errorHandler";
+import { authLimiter, apiLimiter } from "./middleware/rateLimiter";
 import authRouter from "./routes/auth";
 import categoryRouter from "./routes/categories";
 import transactionRouter from "./routes/transactions";
@@ -30,11 +32,20 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+// Request logging (skip in test environment)
+if (process.env.NODE_ENV !== "test") {
+  app.use(morgan("short"));
+}
+
+// General rate limiter
+app.use(apiLimiter);
+
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-app.use("/auth", authRouter);
+// Auth routes get a stricter rate limiter
+app.use("/auth", authLimiter, authRouter);
 app.use("/categories", categoryRouter);
 app.use("/transactions", transactionRouter);
 app.use("/budgets", budgetRouter);

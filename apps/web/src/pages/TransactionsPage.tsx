@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useTransactions, Transaction, TransactionFilters, CreateTransactionInput } from "../hooks/useTransactions";
 import { useCategories } from "../hooks/useCategories";
@@ -9,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { formatSignedAmount } from "../lib/currency";
 import type { Currency } from "../lib/currency";
-import { CurrencySelector } from "../components/CurrencySelector";
+import { AppHeader } from "../components/AppHeader";
 
 type FormMode = "hidden" | "create" | "edit";
 
@@ -23,7 +22,7 @@ function formatDate(isoString: string): string {
 
 
 export function TransactionsPage() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const {
     transactions,
     meta,
@@ -123,36 +122,7 @@ export function TransactionsPage() {
 
   return (
     <div className="min-h-screen bg-muted/40">
-      <header className="bg-background border-b">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link to="/" className="font-semibold text-sm">
-              Budget Tracker
-            </Link>
-            <nav className="flex items-center gap-4 text-sm text-muted-foreground">
-              <Link to="/categories" className="hover:text-foreground transition-colors">
-                Categories
-              </Link>
-              <Link to="/transactions" className="text-foreground font-medium">
-                Transactions
-              </Link>
-              <Link to="/budgets" className="hover:text-foreground transition-colors">
-                Budgets
-              </Link>
-              <Link to="/recurring-rules" className="hover:text-foreground transition-colors">
-                Recurring
-              </Link>
-            </nav>
-          </div>
-          <div className="flex items-center gap-4">
-            <CurrencySelector />
-            <span className="text-sm text-muted-foreground">{user?.name}</span>
-            <Button variant="ghost" size="sm" onClick={logout}>
-              Sign out
-            </Button>
-          </div>
-        </div>
-      </header>
+      <AppHeader activePath="/transactions" />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex items-center justify-between mb-6">
@@ -189,7 +159,7 @@ export function TransactionsPage() {
         {/* Filters */}
         <Card className="mb-6">
           <CardContent className="pt-4">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value as "" | "INCOME" | "EXPENSE")}
@@ -327,14 +297,16 @@ export function TransactionsPage() {
 
                   {/* Delete confirmation */}
                   {isConfirming && (
-                    <div className="border-t border-border px-4 py-3 bg-secondary/30 flex items-center justify-between gap-4">
-                      <p className="text-sm text-muted-foreground">
-                        Delete "{tx.description}"?
-                      </p>
-                      {deleteError && (
-                        <p className="text-xs text-destructive">{deleteError}</p>
-                      )}
-                      <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="border-t border-border px-4 py-3 bg-secondary/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Delete &ldquo;{tx.description}&rdquo;?
+                        </p>
+                        {deleteError && (
+                          <p className="text-xs text-destructive mt-1">{deleteError}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
                         <Button
                           variant="ghost"
                           size="sm"

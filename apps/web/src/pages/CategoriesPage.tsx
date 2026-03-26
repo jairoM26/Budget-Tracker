@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
 import { useCategories, Category } from "../hooks/useCategories";
 import { CategoryForm } from "../components/forms/CategoryForm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link } from "react-router-dom";
-import { CurrencySelector } from "../components/CurrencySelector";
+import { AppHeader } from "../components/AppHeader";
 
 type DeleteState =
   | { status: "idle" }
@@ -13,7 +11,6 @@ type DeleteState =
   | { status: "reassigning"; categoryId: string; message: string };
 
 export function CategoriesPage() {
-  const { user, logout } = useAuth();
   const { categories, isLoading, error, createCategory, updateCategory, deleteCategory, reassignCategory } =
     useCategories();
 
@@ -109,36 +106,7 @@ export function CategoriesPage() {
 
   return (
     <div className="min-h-screen bg-muted/40">
-      <header className="bg-background border-b">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link to="/" className="font-semibold text-sm">
-              Budget Tracker
-            </Link>
-            <nav className="flex items-center gap-4 text-sm text-muted-foreground">
-              <Link to="/categories" className="text-foreground font-medium">
-                Categories
-              </Link>
-              <Link to="/transactions" className="hover:text-foreground transition-colors">
-                Transactions
-              </Link>
-              <Link to="/budgets" className="hover:text-foreground transition-colors">
-                Budgets
-              </Link>
-              <Link to="/recurring-rules" className="hover:text-foreground transition-colors">
-                Recurring
-              </Link>
-            </nav>
-          </div>
-          <div className="flex items-center gap-4">
-            <CurrencySelector />
-            <span className="text-sm text-muted-foreground">{user?.name}</span>
-            <Button variant="ghost" size="sm" onClick={logout}>
-              Sign out
-            </Button>
-          </div>
-        </div>
-      </header>
+      <AppHeader activePath="/categories" />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex items-center justify-between mb-6">
@@ -253,7 +221,7 @@ export function CategoriesPage() {
                   {isReassigning && (
                     <div className="border-t border-border px-4 py-3 bg-secondary/30 space-y-3">
                       <p className="text-sm text-amber-400">{deleteState.message}</p>
-                      <div className="flex items-center gap-3">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                         <select
                           value={reassignTargetId}
                           onChange={(e) => setReassignTargetId(e.target.value)}
@@ -266,17 +234,19 @@ export function CategoriesPage() {
                             </option>
                           ))}
                         </select>
-                        <Button variant="ghost" size="sm" onClick={cancelDelete} disabled={isActioning}>
-                          Cancel
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={handleReassignAndDelete}
-                          disabled={!reassignTargetId || isActioning}
-                        >
-                          {isActioning ? "Reassigning…" : "Reassign & delete"}
-                        </Button>
+                        <div className="flex items-center gap-2 justify-end">
+                          <Button variant="ghost" size="sm" onClick={cancelDelete} disabled={isActioning}>
+                            Cancel
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={handleReassignAndDelete}
+                            disabled={!reassignTargetId || isActioning}
+                          >
+                            {isActioning ? "Reassigning…" : "Reassign & delete"}
+                          </Button>
+                        </div>
                       </div>
                       {actionError && (
                         <p className="text-xs text-destructive">{actionError}</p>

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useBudgets, Budget, CreateBudgetInput } from "../hooks/useBudgets";
 import { useCategories } from "../hooks/useCategories";
@@ -8,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatAmount } from "../lib/currency";
 import type { Currency } from "../lib/currency";
-import { CurrencySelector } from "../components/CurrencySelector";
+import { AppHeader } from "../components/AppHeader";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -38,7 +37,7 @@ function formatMonth(year: number, month: number) {
 }
 
 export function BudgetsPage() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const userCurrency = (user?.currency ?? "USD") as Currency;
   const { budgets, isLoading, error, createBudget, updateBudget, deleteBudget } = useBudgets();
   const { categories } = useCategories();
@@ -99,36 +98,7 @@ export function BudgetsPage() {
 
   return (
     <div className="min-h-screen bg-muted/40">
-      <header className="bg-background border-b">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link to="/" className="font-semibold text-sm">
-              Budget Tracker
-            </Link>
-            <nav className="flex items-center gap-4 text-sm text-muted-foreground">
-              <Link to="/categories" className="hover:text-foreground transition-colors">
-                Categories
-              </Link>
-              <Link to="/transactions" className="hover:text-foreground transition-colors">
-                Transactions
-              </Link>
-              <Link to="/budgets" className="text-foreground font-medium">
-                Budgets
-              </Link>
-              <Link to="/recurring-rules" className="hover:text-foreground transition-colors">
-                Recurring
-              </Link>
-            </nav>
-          </div>
-          <div className="flex items-center gap-4">
-            <CurrencySelector />
-            <span className="text-sm text-muted-foreground">{user?.name}</span>
-            <Button variant="ghost" size="sm" onClick={logout}>
-              Sign out
-            </Button>
-          </div>
-        </div>
-      </header>
+      <AppHeader activePath="/budgets" />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex items-center justify-between mb-6">
@@ -191,7 +161,7 @@ export function BudgetsPage() {
                     </div>
 
                     {/* Overall progress */}
-                    <div className="w-32 hidden sm:block">
+                    <div className="w-24 sm:w-32">
                       <ProgressBar spent={spent} limit={budget.totalLimit} />
                       <p className="text-xs text-muted-foreground text-right mt-1">
                         {parseFloat(budget.totalLimit) > 0
@@ -258,14 +228,16 @@ export function BudgetsPage() {
 
                   {/* Delete confirmation */}
                   {isConfirming && (
-                    <div className="border-t border-border px-4 py-3 bg-secondary/30 flex items-center justify-between gap-4">
-                      <p className="text-sm text-muted-foreground">
-                        Delete budget for {formatMonth(budget.year, budget.month)}?
-                      </p>
-                      {deleteError && (
-                        <p className="text-xs text-destructive">{deleteError}</p>
-                      )}
-                      <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="border-t border-border px-4 py-3 bg-secondary/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Delete budget for {formatMonth(budget.year, budget.month)}?
+                        </p>
+                        {deleteError && (
+                          <p className="text-xs text-destructive mt-1">{deleteError}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
                         <Button
                           variant="ghost"
                           size="sm"

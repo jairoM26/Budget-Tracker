@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useRecurringRules, RecurringRule, CreateRecurringRuleInput } from "../hooks/useRecurringRules";
 import { useCategories } from "../hooks/useCategories";
 import { RecurringRuleForm } from "../components/forms/RecurringRuleForm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CurrencySelector } from "../components/CurrencySelector";
+import { AppHeader } from "../components/AppHeader";
 import { formatAmount } from "../lib/currency";
 import type { Currency } from "../lib/currency";
 
@@ -28,7 +27,7 @@ function formatDate(isoString: string): string {
 }
 
 export function RecurringRulesPage() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const userCurrency = (user?.currency ?? "USD") as Currency;
   const { rules, isLoading, error, createRule, updateRule, deleteRule } = useRecurringRules();
   const { categories } = useCategories();
@@ -88,36 +87,7 @@ export function RecurringRulesPage() {
 
   return (
     <div className="min-h-screen bg-muted/40">
-      <header className="bg-background border-b">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link to="/" className="font-semibold text-sm">
-              Budget Tracker
-            </Link>
-            <nav className="flex items-center gap-4 text-sm text-muted-foreground">
-              <Link to="/categories" className="hover:text-foreground transition-colors">
-                Categories
-              </Link>
-              <Link to="/transactions" className="hover:text-foreground transition-colors">
-                Transactions
-              </Link>
-              <Link to="/budgets" className="hover:text-foreground transition-colors">
-                Budgets
-              </Link>
-              <Link to="/recurring-rules" className="text-foreground font-medium">
-                Recurring
-              </Link>
-            </nav>
-          </div>
-          <div className="flex items-center gap-4">
-            <CurrencySelector />
-            <span className="text-sm text-muted-foreground">{user?.name}</span>
-            <Button variant="ghost" size="sm" onClick={logout}>
-              Sign out
-            </Button>
-          </div>
-        </div>
-      </header>
+      <AppHeader activePath="/recurring-rules" />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex items-center justify-between mb-6">

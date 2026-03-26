@@ -86,7 +86,7 @@ export function TransactionForm({ initial, categories, onSubmit, onCancel }: Tra
         <div className="bg-destructive/10 text-destructive text-sm rounded-md px-3 py-2">{error}</div>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <Label htmlFor="tx-amount">Amount</Label>
           <Input
@@ -144,7 +144,7 @@ export function TransactionForm({ initial, categories, onSubmit, onCancel }: Tra
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <Label htmlFor="tx-date">Date</Label>
           <Input
