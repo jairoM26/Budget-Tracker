@@ -213,3 +213,65 @@ The application is a personal learning project. There is no budget for infrastru
 - Render's free PostgreSQL instance has a 1 GB storage limit and a 90-day expiry — a paid instance or migration must be planned before the 90-day mark
 - Vercel's free tier supports unlimited personal projects with no cold start for static assets
 - Deployment is triggered by pushing to the `main` branch on GitHub — this is the CI/CD pipeline for v1
+
+---
+
+# ADR-09 — Email-based transaction ingestion via IMAP polling
+
+| Field   | Value              |
+|---------|--------------------|
+| Date    | 2026-03-26         |
+| Status  | Accepted           |
+
+## Decision
+
+Implement email-based transaction ingestion as an opt-in feature that connects to a user's email inbox via IMAP (or Gmail API), searches for emails matching user-defined subject filters, and uses Claude AI to extract transaction data from the email body. Users review extracted transactions in a queue before they become real transactions.
+
+## Context
+
+The original Milestone 8 design proposed a SendGrid Inbound Parse webhook pipeline: configure MX records for a subdomain, assign each user a special ingest email address, and have SendGrid POST incoming emails to a webhook endpoint. While technically sound, this approach has significant drawbacks:
+
+- **High user friction:** users must forward bank emails to a special address or reconfigure their bank's notification recipient — most users will not do this.
+- **Infrastructure overhead:** MX record setup, SendGrid configuration, webhook signature verification, multipart form-data parsing, and a dedicated endpoint outside the JWT auth model.
+- **Fragile user mapping:** relies on opaque tokens in email addresses to associate emails with users.
+- **Unnecessary complexity:** the actual goal is simple — read bank notification emails and extract amounts/merchants/dates.
+
+## Alternatives considered
+
+**SendGrid Inbound Parse (webhook)** — the original plan. MX records for a subdomain, unique ingest addresses per user, webhook endpoint with signature verification. Rejected because it introduces email infrastructure complexity that is disproportionate to the value delivered. Users must actively redirect their bank emails, which is a UX barrier that most personal finance users will not overcome.
+
+**Mailgun / Postmark inbound** — same webhook model as SendGrid with different providers. Rejected for the same reasons.
+
+**Manual copy-paste** — users paste email text into a form, AI extracts fields. Rejected because it eliminates the automation that makes this feature valuable.
+
+## Chosen approach
+
+**IMAP polling with user-defined rules:**
+
+1. **Opt-in:** the feature is disabled by default. Users enable it in their settings page.
+2. **Separate email:** users can configure any email address for scanning — it does not have to match their account email. They authenticate via OAuth (Gmail API) or app password (IMAP).
+3. **User-defined subject filters:** users create "scan rules" specifying the email subject to search for (e.g., `"Notificación de transacción"`). Multiple rules can target different banks or notification types.
+4. **Scheduled sync:** a daily cron job (or manual "Sync now" button) connects to the user's email, searches for new emails matching their rules since the last sync, and processes each match.
+5. **AI extraction (Approach A):** the user only configures the subject filter. Claude AI parses the email body to extract amount, merchant, date, and transaction type. No regex knowledge required from the user.
+6. **Preview on setup:** when a user creates a new rule, the system fetches a sample matching email and shows what AI extracted, so the user can confirm the extraction looks correct before enabling auto-sync.
+7. **Review queue:** extracted transactions land in a pending queue. Users approve, edit, or reject each one before it becomes a real transaction.
+
+## Implementation notes
+
+- Use `imapflow` for IMAP connections (modern, Promise-based, well-maintained)
+- For Gmail users, support Google OAuth 2.0 via the Gmail API as an alternative to IMAP (better UX, no app passwords)
+- Email credentials are encrypted at rest (AES-256-GCM with a server-side key)
+- Claude Sonnet is used for extraction (cost-effective, ~$0.003–0.005 per email)
+- AI extraction uses tool use / function calling to guarantee structured JSON output
+- Category suggestion (two-tier: history match first, Claude fallback) pre-fills the category during extraction
+- The IMAP connection is short-lived — connect, search, fetch, disconnect. No persistent connections.
+
+## Consequences
+
+- No email infrastructure required (no MX records, no SendGrid, no webhooks)
+- Users connect their existing inbox — zero friction compared to forwarding emails
+- Works with any email provider that supports IMAP (Gmail, Outlook, Yahoo, custom IMAP)
+- User-defined rules make the system flexible for any bank or notification format
+- The system stores encrypted email credentials — this is a security responsibility we accept
+- AI extraction adapts to any email format without hardcoded templates
+- The daily cron model means transactions are not real-time — this is acceptable for a budget tracker where users review daily or weekly

@@ -60,7 +60,7 @@ Most people lack a clear picture of their monthly spending. Existing solutions a
 - Native mobile application (web responsive is sufficient for v1)
 - Offline mode
 - Data export (CSV, PDF) — considered for v2
-- Email parsing / AI transaction ingestion — considered for v2 (agentic phase)
+- Email parsing / AI transaction ingestion — planned for v2 (agentic phase, see ADR-09): opt-in IMAP/Gmail polling with user-defined subject filters and AI extraction
 
 ---
 

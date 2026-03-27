@@ -187,17 +187,25 @@ Tasks are sized by **relative complexity and uncertainty**, not time. Use past c
 
 ---
 
-## Milestone 8 — Agentic phase (v2, planned)
+## Milestone 8 — Agentic phase (v2)
 
-> Goal: AI-powered features. Architecture is designed; tasks will be scoped when Milestone 7 is complete.
+> Goal: AI-powered features — email-based transaction ingestion with user-defined rules and AI extraction, plus smart category suggestion. See ADR-09 for architectural decisions.
 
 | ID    | Task                                                           | Size | Status | Depends on  |
 |-------|----------------------------------------------------------------|------|--------|-------------|
-| T-090 | Design and document email parsing pipeline                     | M    | todo   | M7 complete |
-| T-091 | Integrate inbound email webhook (SendGrid or similar)          | M    | todo   | T-090       |
-| T-092 | Build AI extraction service: email → structured transaction    | L    | todo   | T-091       |
-| T-093 | Build review queue: pending parsed transactions UI             | M    | todo   | T-092       |
-| T-094 | AI-powered category suggestion on manual transaction entry     | M    | todo   | T-092       |
+| T-090 | Design and document email ingestion pipeline (ADR-09)          | M    | done   | M7 complete |
+| T-091 | Prisma schema: EmailConnection, ScanRule, EmailLog, PendingTransaction models + migration | M | todo | T-090 |
+| T-092 | Implement email connection service (IMAP via imapflow + Gmail API OAuth) | L | todo | T-091 |
+| T-093 | Implement scan rule engine: connect, search by subject filter, fetch new emails since last sync | M | todo | T-092 |
+| T-094 | Build AI extraction service: email body → structured transaction (Claude Sonnet, tool use) | M | todo | T-093 |
+| T-095 | Build AI category suggestion: history-based matching with Claude fallback | M | todo | T-091 |
+| T-096 | Implement PendingTransaction CRUD + approve/reject endpoints (approve creates real transaction) | M | todo | T-094 |
+| T-097 | Integrate daily cron job for email sync + manual "Sync now" endpoint | S | todo | T-094 |
+| T-098 | Build email connection settings UI (connect email, manage scan rules, preview extraction) | L | todo | T-093 |
+| T-099 | Build review queue UI with approve/edit/reject + batch operations | M | todo | T-096 |
+| T-100 | Integrate category suggestion into TransactionForm (debounced, with "Suggested" badge) | S | todo | T-095 |
+| T-101 | Integration tests: email sync, AI extraction (mocked), pending transaction CRUD, approve flow | M | todo | T-097 |
+| T-102 | E2E tests: settings → connect email → review queue → approve transaction journey | S | todo | T-100 |
 
 ---
 
@@ -214,4 +222,4 @@ Tasks are sized by **relative complexity and uncertainty**, not time. Use past c
 | 6 — Reports           | 0  | 4  | 3  | 0 | 7           |
 | 7 — Polish            | 1  | 3  | 3  | 1 | 7           |
 | **v1 total**          | **9** | **31** | **25** | **5** | **70** |
-| 8 — Agentic (v2)      | 0  | 0  | 4  | 1 | 5           |
+| 8 — Agentic (v2)      | 0  | 3  | 7  | 2 | 13          |
