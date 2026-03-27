@@ -19,6 +19,17 @@ enum RecurringFrequency {
   YEARLY
 }
 
+enum PendingTransactionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum EmailProvider {
+  IMAP
+  GMAIL
+}
+
 model User {
   id           String   @id @default(uuid())
   email        String   @unique
@@ -27,11 +38,14 @@ model User {
   currency     String   @default("USD")
   createdAt    DateTime @default(now())
 
-  categories     Category[]
-  transactions   Transaction[]
-  budgets        Budget[]
-  recurringRules RecurringRule[]
-  refreshTokens  RefreshToken[]
+  categories          Category[]
+  transactions        Transaction[]
+  budgets             Budget[]
+  recurringRules      RecurringRule[]
+  refreshTokens       RefreshToken[]
+  emailConnections    EmailConnection[]
+  emailLogs           EmailLog[]
+  pendingTransactions PendingTransaction[]
 }
 
 model RefreshToken {
@@ -54,10 +68,11 @@ model Category {
   icon   String           @default("tag")
   type   TransactionType?
 
-  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions     Transaction[]
-  budgetCategories BudgetCategory[]
-  recurringRules   RecurringRule[]
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions        Transaction[]
+  budgetCategories    BudgetCategory[]
+  recurringRules      RecurringRule[]
+  pendingTransactions PendingTransaction[]
 
   @@index([userId])
 }
@@ -124,4 +139,76 @@ model RecurringRule {
   transactions Transaction[]
 
   @@index([userId, active])
+}
+
+model EmailConnection {
+  id              String        @id @default(uuid())
+  userId          String
+  provider        EmailProvider
+  email           String
+  encryptedCreds  String        @db.Text
+  active          Boolean       @default(true)
+  lastSyncAt      DateTime?
+  createdAt       DateTime      @default(now())
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scanRules ScanRule[]
+
+  @@index([userId])
+}
+
+model ScanRule {
+  id                String   @id @default(uuid())
+  emailConnectionId String
+  subjectFilter     String
+  active            Boolean  @default(true)
+  createdAt         DateTime @default(now())
+
+  emailConnection EmailConnection @relation(fields: [emailConnectionId], references: [id], onDelete: Cascade)
+  emailLogs       EmailLog[]
+
+  @@index([emailConnectionId])
+}
+
+model EmailLog {
+  id           String    @id @default(uuid())
+  userId       String
+  scanRuleId   String?
+  fromAddress  String
+  subject      String?
+  bodyText     String?   @db.Text
+  processedAt  DateTime?
+  errorMessage String?
+  createdAt    DateTime  @default(now())
+
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scanRule            ScanRule?           @relation(fields: [scanRuleId], references: [id], onDelete: SetNull)
+  pendingTransactions PendingTransaction[]
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model PendingTransaction {
+  id            String                   @id @default(uuid())
+  userId        String
+  emailLogId    String?
+  amount        Decimal?                 @db.Decimal(12, 2)
+  type          TransactionType?
+  description   String?
+  merchant      String?
+  date          DateTime?
+  categoryId    String?
+  status        PendingTransactionStatus @default(PENDING)
+  confidence    Decimal                  @db.Decimal(3, 2)
+  aiRawResponse String?                  @db.Text
+  reviewedAt    DateTime?
+  createdAt     DateTime                 @default(now())
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailLog EmailLog? @relation(fields: [emailLogId], references: [id], onDelete: SetNull)
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
+  @@index([createdAt])
 }
