@@ -11,6 +11,7 @@ import budgetRouter from "./routes/budgets";
 import userRouter from "./routes/users";
 import recurringRuleRouter from "./routes/recurring-rules";
 import reportRouter from "./routes/reports";
+import emailConnectionRouter from "./routes/email-connections";
 
 const app = express();
 
@@ -52,6 +53,7 @@ app.use("/budgets", budgetRouter);
 app.use("/users", userRouter);
 app.use("/recurring-rules", recurringRuleRouter);
 app.use("/reports", reportRouter);
+app.use("/email-connections", emailConnectionRouter);
 
 app.use((_req, res) => {
   res.status(404).json({
