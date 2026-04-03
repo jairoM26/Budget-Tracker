@@ -90,6 +90,17 @@ export async function getConnection(userId: string, id: string) {
   return serializeConnection(conn);
 }
 
+export async function getConnectionRaw(userId: string, id: string) {
+  const conn = await prisma.emailConnection.findUnique({
+    where: { id },
+  });
+
+  if (!conn) throw new NotFoundError("Email connection not found");
+  if (conn.userId !== userId) throw new ForbiddenError();
+
+  return conn;
+}
+
 export async function createConnection(userId: string, input: CreateEmailConnectionInput) {
   const encryptedCreds = encrypt(JSON.stringify(input.credentials));
 

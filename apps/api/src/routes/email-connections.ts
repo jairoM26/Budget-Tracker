@@ -26,4 +26,12 @@ router.post("/:id/scan-rules", validate(createScanRuleSchema), emailConnectionCo
 router.patch("/:id/scan-rules/:ruleId", validate(updateScanRuleSchema), emailConnectionController.updateScanRule);
 router.delete("/:id/scan-rules/:ruleId", emailConnectionController.removeScanRule);
 
+// Sync & Test
+router.post("/:id/test", emailConnectionController.testEmailConnection);
+router.post("/:id/sync", emailConnectionController.syncConnection);
+router.post("/sync-all", emailConnectionController.syncAll);
+
+// Email logs
+router.get("/logs/unprocessed", emailConnectionController.listUnprocessedLogs);
+
 export default router;

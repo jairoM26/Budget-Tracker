@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import * as emailConnectionService from "../services/email-connections";
+import * as emailSyncService from "../services/email-sync";
+import { testConnection, type ImapCredentials } from "../services/imap-client";
 
 // --- EmailConnection CRUD ---
 
@@ -86,6 +88,46 @@ export async function removeScanRule(req: Request, res: Response, next: NextFunc
   try {
     await emailConnectionService.removeScanRule(req.user.id, req.params.id, req.params.ruleId);
     res.json({ success: true });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// --- Sync & Test ---
+
+export async function testEmailConnection(req: Request, res: Response, next: NextFunction) {
+  try {
+    const conn = await emailConnectionService.getConnectionRaw(req.user.id, req.params.id);
+    const credentials = emailConnectionService.getDecryptedCredentials(conn.encryptedCreds) as ImapCredentials;
+    const result = await testConnection(conn.email, credentials);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function syncConnection(req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await emailSyncService.syncConnection(req.user.id, req.params.id);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function syncAll(req: Request, res: Response, next: NextFunction) {
+  try {
+    const results = await emailSyncService.syncAllForUser(req.user.id);
+    res.json({ success: true, data: results });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function listUnprocessedLogs(req: Request, res: Response, next: NextFunction) {
+  try {
+    const logs = await emailSyncService.getUnprocessedLogs(req.user.id);
+    res.json({ success: true, data: logs });
   } catch (error) {
     next(error);
   }
